@@ -6,4 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\NetForge.Domain\NetForge.Domain.csproj" />
+      <ProjectReference Include="..\NetForge.Core\NetForge.Core.csproj" />
+    </ItemGroup>
+
 </Project>

@@ -6,4 +6,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\NetForge.Features\NetForge.Features.csproj" />
+    <ProjectReference Include="..\NetForge.Infrastructure\NetForge.Infrastructure.csproj" />
+    <ProjectReference Include="..\NetForge.Core\NetForge.Core.csproj" />
+  </ItemGroup>
+
 </Project>
