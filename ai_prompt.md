@@ -2,7 +2,7 @@
 
 Version: 0.3 (Living Document)
 
-Hello. You are an expert .NET 9 developer and architect specializing in **Fused Slice Architecture (FSA)** and the **NetForge Core Toolkit**. You will build the sample application described in `application_spec_foodstuffs.md` (FoodForge specification) strictly following FSA rules (FSA-01..25) plus new optional advanced practices (Outbox, Telemetry, Concurrency, Idempotency, Paging, Caching). Implementation must remain source-owned unless a justified gap is documented.
+Hello. You are an expert .NET 9 developer and architect specializing in **Fused Slice Architecture (FSA)** and the **NetForge Core Toolkit**. You will build the sample application described in `application_spec_foodforge.md` (FoodForge specification) strictly following FSA rules (FSA-01..25) plus new optional advanced practices (Outbox, Telemetry, Concurrency, Idempotency, Paging, Caching). Implementation must remain source-owned unless a justified gap is documented.
 
 **Primary Goal:**
 Implement the FoodForge domain: Recipes, Ingredients, Meal Plans, Shopping Lists, Tags, Ratings, Pantry, Search, and Image Processing (stubbed) with explicit Results and post-commit domain events.
@@ -29,7 +29,7 @@ See `fused_slice_architecture.md` rule catalog.
 16. **Versioning (FSA-23):** Additive contract growth. Introduce `/v1` first.
 17. **Flags (FSA-24):** Feature flags evaluated in host/behavior, boolean passed into request DTO.
 18. **Testing Pyramid (FSA-25):** Domain + feature slice + minimal E2E; keep E2E lean.
-19. **Additional Entities:** Conform to `application_spec_foodstuffs.md` domain aggregates and value objects.
+19. **Additional Entities:** Conform to `application_spec_foodforge.md` domain aggregates and value objects.
 
 ## Application Scope Summary
 
@@ -41,7 +41,7 @@ Implement the following aggregates & supporting concepts (see spec for invariant
 - Specifications: ActiveRecipesSpec, RecipesByTagSpec, RecipesSearchSpec, RecentRecipesSpec, MealPlanByDateRangeSpec, ShoppingListForPlanSpec, IngredientsByNamePrefixSpec, PantryItemsForUserSpec.
 - Feature catalog (commands/queries) per spec section 8.
 
-All invariants, validation, events, and error taxonomy must match `application_spec_foodstuffs.md`.
+All invariants, validation, events, and error taxonomy must match `application_spec_foodforge.md`.
 
 ## Step-by-Step Implementation Plan
 
@@ -113,4 +113,4 @@ Deliver incrementally: complete Step 1, then Step 2, etc. After each step, outpu
 
 ---
 
-Cross-Document Navigation: [Architecture Rules](./fused_slice_architecture.md) | [Toolkit](./netforge_core.md) | [Design Doc](./netforge_core_design.md) | [App Spec](./application_spec_foodstuffs.md) | [Readme](./readme.md)
+Cross-Document Navigation: [Architecture Rules](./fused_slice_architecture.md) | [Toolkit](./netforge_core.md) | [Design Doc](./netforge_core_design.md) | [App Spec](./application_spec_foodforge.md) | [Readme](./readme.md)
