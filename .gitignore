@@ -1,0 +1,67 @@
+# NetForge / .NET Core standard ignores
+
+# Build outputs
+bin/
+obj/
+[Bb]uild/
+[Ll]og/
+
+# User-specific
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
+
+# VS / Rider
+.vs/
+.idea/
+*.iml
+
+# JetBrains caches
+.gradle/
+
+# NuGet
+*.nupkg
+# Packages folder can be restored
+packages/
+
+# Logs
+*.log
+
+# Coverage
+coverage/
+*.opencover.xml
+*.lcov
+
+# Resharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+
+# Azure
+.publishsettings
+
+# NCrunch
+*NCrunch_*
+.*crunch*.local.xml
+
+# Mac
+.DS_Store
+
+# Node (if frontend later)
+node_modules/
+
+# Env
+.env
+.env.*
+
+# Cache
+*.cache
+
+# Temporary
+[Tt]emp/
+
+# Tooling
+artifacts/
+
+# Generated
+Generated/

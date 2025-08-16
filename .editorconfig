@@ -1,0 +1,133 @@
+code
+Ini
+download
+content_copy
+expand_less
+
+# .NET Forge Coding Style Configuration
+# This file is used by the editor to enforce consistent coding styles and formatting.
+# It is configured to promote modern C# 13+ and .NET 9 best practices.
+
+# C# files
+[*.cs]
+
+#### Core Formatting Rules ####
+
+# Indentation and spacing
+indent_style                    = space
+indent_size                     = 4
+tab_width                       = 4
+end_of_line                     = lf
+insert_final_newline            = true
+trim_trailing_whitespace        = true
+
+#### C# Naming Rules ####
+
+# Naming conventions for C# symbols
+dotnet_naming_rule.interface_should_be_prefixed_with_i.severity = suggestion
+dotnet_naming_rule.interface_should_be_prefixed_with_i.symbols   = interface
+dotnet_naming_rule.interface_should_be_prefixed_with_i.style     = pascal_case_with_i_prefix
+
+dotnet_naming_rule.private_fields_should_be_prefixed_with_underscore.severity = suggestion
+dotnet_naming_rule.private_fields_should_be_prefixed_with_underscore.symbols   = private_fields
+dotnet_naming_rule.private_fields_should_be_prefixed_with_underscore.style     = underscore_prefixed
+
+dotnet_naming_symbol.interface.applicable_kinds           = interface
+dotnet_naming_symbol.interface.applicable_accessibilities = *
+dotnet_naming_symbol.interface.required_modifiers         =
+
+dotnet_naming_symbol.private_fields.applicable_kinds      = field
+dotnet_naming_symbol.private_fields.applicable_accessibilities = private
+dotnet_naming_symbol.private_fields.required_modifiers    =
+
+dotnet_naming_style.pascal_case_with_i_prefix.capitalization = pascal_case
+dotnet_naming_style.pascal_case_with_i_prefix.required_prefix = I
+dotnet_naming_style.pascal_case_with_i_prefix.required_suffix =
+dotnet_naming_style.pascal_case_with_i_prefix.word_separator  =
+
+dotnet_naming_style.underscore_prefixed.capitalization = camel_case
+dotnet_naming_style.underscore_prefixed.required_prefix = _
+dotnet_naming_style.underscore_prefixed.required_suffix =
+dotnet_naming_style.underscore_prefixed.word_separator  =
+
+#### C# Style Rules (Modern Practices) ####
+
+# Use file-scoped namespaces (C# 10+)
+csharp_style_namespace_declarations = file_scoped:suggestion
+
+# Prefer 'var' for built-in types when the type is apparent
+csharp_style_var_for_built_in_types = true:suggestion
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_style_var_elsewhere = true:suggestion
+
+# Use expression-bodied members for concise syntax
+csharp_style_expression_bodied_constructors = false:none # Constructors should be clear
+csharp_style_expression_bodied_methods = true:suggestion
+csharp_style_expression_bodied_operators = true:suggestion
+csharp_style_expression_bodied_properties = true:suggestion
+csharp_style_expression_bodied_indexers = true:suggestion
+csharp_style_expression_bodied_accessors = true:suggestion
+csharp_style_expression_bodied_local_functions = true:suggestion
+
+# Prefer pattern matching over 'as' with 'null' check
+csharp_style_pattern_matching_over_as_with_null_check = true:suggestion
+
+# Prefer pattern matching over 'is' with 'cast'
+csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
+
+# Use conditional delegate call
+csharp_style_conditional_delegate_call = true:suggestion
+
+# Prefer null-coalescing expressions
+csharp_style_coalesce_expression = true:suggestion
+
+# Prefer object initializers
+csharp_style_object_initializer = true:suggestion
+
+# Prefer collection initializers
+csharp_style_collection_initializer = true:suggestion
+
+# Prefer simplified 'new' expression (C# 9+)
+csharp_style_implicit_object_creation_when_type_is_apparent = true:suggestion
+
+# Prefer top-level statements for Program.cs (handled by template)
+csharp_style_prefer_top_level_statements = true:suggestion
+
+# Prefer primary constructors (C# 12+)
+csharp_style_prefer_primary_constructors = true:suggestion
+
+# Prefer 'is null' over '== null'
+csharp_style_null_check_over_equals = true:suggestion
+
+# Code block preferences
+csharp_prefer_braces = true:suggestion
+
+# Modifier preferences
+csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:suggestion
+dotnet_style_readonly_field = true:suggestion
+
+# Using directive preferences
+csharp_using_directive_placement = outside_namespace:suggestion
+dotnet_sort_system_directives_first = true
+
+# Unnecessary code
+dotnet_style_remove_unnecessary_using_directives = true:suggestion
+dotnet_code_quality_remove_unnecessary_lambda_expression = true:suggestion
+
+#### C# Code Quality Rules ####
+
+# Enable basic code quality analysis
+dotnet_analyzer_diagnostic.category-Style.severity = suggestion
+dotnet_analyzer_diagnostic.category-CodeQuality.severity = warning
+dotnet_analyzer_diagnostic.category-Performance.severity = warning
+dotnet_analyzer_diagnostic.category-Design.severity = warning
+
+# Avoid multiple blank lines
+dotnet_remove_multiple_blank_lines_from_code = true
+
+# Add header to new files (can be configured with a template)
+# file_header_template = Unlicensed software
+
+[*.{md,json,yml,yaml}]
+indent_style = space
+indent_size = 2
