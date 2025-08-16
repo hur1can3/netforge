@@ -1,35 +1,35 @@
 namespace NetForge.Core.Results;
 
-public readonly struct Result
+public readonly struct ForgeResult
 {
-    private Result(bool success, IReadOnlyList<Error>? errors)
+    private ForgeResult(bool success, IReadOnlyList<ForgeError>? errors)
     {
         IsSuccess = success;
-        Errors = errors ?? Array.Empty<Error>();
+        Errors = errors ?? Array.Empty<ForgeError>();
     }
     public bool IsSuccess { get; }
     public bool IsFailure => !IsSuccess;
-    public IReadOnlyList<Error> Errors { get; }
+    public IReadOnlyList<ForgeError> Errors { get; }
 
-    public static Result Success() => new(true, null);
-    public static Result Failure(params Error[] errors) => new(false, errors);
-    public static Result Failure(IEnumerable<Error> errors) => new(false, errors.ToList());
+    public static ForgeResult Success() => new(true, null);
+    public static ForgeResult Failure(params ForgeError[] errors) => new(false, errors);
+    public static ForgeResult Failure(IEnumerable<ForgeError> errors) => new(false, errors.ToList());
 }
 
-public readonly struct Result<T>
+public readonly struct ForgeResult<T>
 {
-    private Result(bool success, T? value, IReadOnlyList<Error>? errors)
+    private ForgeResult(bool success, T? value, IReadOnlyList<ForgeError>? errors)
     {
         IsSuccess = success;
         Value = value!;
-        Errors = errors ?? Array.Empty<Error>();
+        Errors = errors ?? Array.Empty<ForgeError>();
     }
     public bool IsSuccess { get; }
     public bool IsFailure => !IsSuccess;
     public T Value { get; }
-    public IReadOnlyList<Error> Errors { get; }
+    public IReadOnlyList<ForgeError> Errors { get; }
 
-    public static Result<T> Success(T value) => new(true, value, null);
-    public static Result<T> Failure(params Error[] errors) => new(false, default, errors);
-    public static Result<T> Failure(IEnumerable<Error> errors) => new(false, default, errors.ToList());
+    public static ForgeResult<T> Success(T value) => new(true, value, null);
+    public static ForgeResult<T> Failure(params ForgeError[] errors) => new(false, default, errors);
+    public static ForgeResult<T> Failure(IEnumerable<ForgeError> errors) => new(false, default, errors.ToList());
 }

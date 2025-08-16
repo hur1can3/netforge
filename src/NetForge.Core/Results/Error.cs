@@ -1,11 +1,11 @@
 namespace NetForge.Core.Results;
 
-public sealed record Error(string Code, string Message, ErrorSeverity Severity = ErrorSeverity.Failure)
+public sealed record ForgeError(string Code, string Message, ForgeErrorSeverity Severity = ForgeErrorSeverity.Failure)
 {
-    public static Error Validation(string field, string message) => new($"Validation:{field}", message, ErrorSeverity.Validation);
-    public static Error NotFound(string entity, string message) => new($"NotFound:{entity}", message, ErrorSeverity.NotFound);
-    public static Error Conflict(string entity, string message) => new($"Conflict:{entity}", message, ErrorSeverity.Conflict);
-    public static Error Unexpected(string message) => new("Unexpected", message, ErrorSeverity.Failure);
+    public static ForgeError Validation(string field, string message) => new($"Validation:{field}", message, ForgeErrorSeverity.Validation);
+    public static ForgeError NotFound(string entity, string message) => new($"NotFound:{entity}", message, ForgeErrorSeverity.NotFound);
+    public static ForgeError Conflict(string entity, string message) => new($"Conflict:{entity}", message, ForgeErrorSeverity.Conflict);
+    public static ForgeError Unexpected(string message) => new("Unexpected", message, ForgeErrorSeverity.Failure);
 }
 
-public enum ErrorSeverity { Validation, NotFound, Conflict, Failure }
+public enum ForgeErrorSeverity { Validation, NotFound, Conflict, Failure }

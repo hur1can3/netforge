@@ -6,22 +6,22 @@ namespace NetForge.Tests.Core;
 
 public class MediatorTests
 {
-    private sealed record Ping(string Message) : IRequest<Result<string>>;
+    private sealed record Ping(string Message) : IForgeRequest<ForgeResult<string>>;
 
-    private sealed class PingHandler : IRequestHandler<Ping, Result<string>>
+    private sealed class PingHandler : IForgeRequestHandler<Ping, ForgeResult<string>>
     {
-        public Task<Result<string>> Handle(Ping request, CancellationToken cancellationToken) =>
-            Task.FromResult(Result<string>.Success($"PONG:{request.Message}"));
+        public Task<ForgeResult<string>> Handle(Ping request, CancellationToken cancellationToken) =>
+            Task.FromResult(ForgeResult<string>.Success($"PONG:{request.Message}"));
     }
 
     [Fact]
     public async Task MediatorInvokesHandler()
     {
         var services = new ServiceCollection();
-        services.AddSingleton<IMediator, Mediator>();
-        services.AddSingleton<IRequestHandler<Ping, Result<string>>, PingHandler>();
-        var sp = services.BuildServiceProvider();
-        var mediator = sp.GetRequiredService<IMediator>();
+    services.AddSingleton<IForgeMediator, ForgeMediator>();
+    services.AddSingleton<IForgeRequestHandler<Ping, ForgeResult<string>>, PingHandler>();
+    var sp = services.BuildServiceProvider();
+    var mediator = sp.GetRequiredService<IForgeMediator>();
         var response = await mediator.Send(new Ping("HELLO"));
         Assert.True(response.IsSuccess);
         Assert.Equal("PONG:HELLO", response.Value);
