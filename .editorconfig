@@ -1,12 +1,9 @@
-code
-Ini
-download
-content_copy
-expand_less
+root = true
 
 # .NET Forge Coding Style Configuration
-# This file is used by the editor to enforce consistent coding styles and formatting.
-# It is configured to promote modern C# 13+ and .NET 9 best practices.
+# Aligned with Fused Slice Architecture (FSA) rules.
+# This governs formatting & some semantic conventions to reduce friction (FSA-01 cohesion, FSA-05 rich domain, FSA-10 pipeline clarity, FSA-16 telemetry, FSA-20 bounded sets).
+# For any rule not enforceable via built-in analyzers, placeholders (FSA00xx) are provided for future custom analyzers.
 
 # C# files
 [*.cs]
@@ -20,6 +17,28 @@ tab_width                       = 4
 end_of_line                     = lf
 insert_final_newline            = true
 trim_trailing_whitespace        = true
+
+# Enforce UTF-8 (avoid BOM issues across tooling / CI)
+charset                         = utf-8
+
+#### FSA Rule Mapping (Informational) ####
+# FSA-01 (Feature Fusion): Encourage cohesive single-feature files -> no multi-file partials for handlers/validators (convention, not enforced here)
+# FSA-03 (Abstraction Only): Avoid direct DbContext usage in features -> custom analyzer placeholder id FSA0003
+# FSA-04 (Explicit Results): Discourage throwing for expected control flow -> placeholder FSA0004
+# FSA-06/FSA-12 (Repository + UoW / Repos Don't Commit): Forbid SaveChanges/Commit in handlers/repos -> placeholder FSA0006, FSA0012
+# FSA-07 (Post-Commit Dispatch): Domain events only via entity -> placeholder FSA0007
+# FSA-08 (Specification Usage): Prefer specs over inline Where -> placeholder FSA0008
+# FSA-16 (Structured Telemetry): Structured logging templates required -> placeholder FSA0016
+# FSA-20 (Bounded Result Sets): Collection queries must paginate -> placeholder FSA0020
+# Custom analyzer IDs to be introduced later; severities predeclared below (commented until analyzers exist).
+# dotnet_diagnostic.FSA0003.severity = warning
+# dotnet_diagnostic.FSA0004.severity = warning
+# dotnet_diagnostic.FSA0006.severity = error
+# dotnet_diagnostic.FSA0007.severity = warning
+# dotnet_diagnostic.FSA0008.severity = suggestion
+# dotnet_diagnostic.FSA0012.severity = error
+# dotnet_diagnostic.FSA0016.severity = suggestion
+# dotnet_diagnostic.FSA0020.severity = warning
 
 #### C# Naming Rules ####
 
@@ -56,9 +75,10 @@ dotnet_naming_style.underscore_prefixed.word_separator  =
 csharp_style_namespace_declarations = file_scoped:suggestion
 
 # Prefer 'var' for built-in types when the type is apparent
+# Use 'var' when type is obvious; explicit type otherwise for readability in rich domain models (supports FSA-05 clarity)
 csharp_style_var_for_built_in_types = true:suggestion
 csharp_style_var_when_type_is_apparent = true:suggestion
-csharp_style_var_elsewhere = true:suggestion
+csharp_style_var_elsewhere = false:silent
 
 # Use expression-bodied members for concise syntax
 csharp_style_expression_bodied_constructors = false:none # Constructors should be clear
@@ -122,8 +142,31 @@ dotnet_analyzer_diagnostic.category-CodeQuality.severity = warning
 dotnet_analyzer_diagnostic.category-Performance.severity = warning
 dotnet_analyzer_diagnostic.category-Design.severity = warning
 
-# Avoid multiple blank lines
+# Avoid multiple blank lines (keeps feature files compact, FSA-01)
 dotnet_remove_multiple_blank_lines_from_code = true
+
+#### Additional Preferences Supporting FSA ####
+
+# Prefer readonly structs for immutable value objects (informational – manual discipline)
+dotnet_style_readonly_struct = true:suggestion
+
+# Prefer required members for entities/value objects invariants in C# 12+
+dotnet_style_require_accessibility_modifiers = always:suggestion
+
+# Encourage using spans where appropriate for performance (FSA performance ethos)
+dotnet_analyzer_diagnostic.category-Security.severity = warning
+
+# Treat CA warnings strictly (surface early)
+dotnet_diagnostic.CA1822.severity = suggestion
+dotnet_diagnostic.CA1305.severity = warning
+dotnet_diagnostic.CA1062.severity = warning
+
+#### Telemetry (FSA-16) ####
+# Structured logging message template analyzer placeholders (future)
+# dotnet_diagnostic.FSA1001.severity = warning  # Detect string concatenation in Log* methods
+
+#### Bounded Collections (FSA-20) ####
+# dotnet_diagnostic.FSA2001.severity = warning  # Detect ToList()/ToArray() without pagination in handlers
 
 # Add header to new files (can be configured with a template)
 # file_header_template = Unlicensed software
@@ -131,3 +174,7 @@ dotnet_remove_multiple_blank_lines_from_code = true
 [*.{md,json,yml,yaml}]
 indent_style = space
 indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = true
+insert_final_newline = true
