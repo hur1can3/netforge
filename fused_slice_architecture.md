@@ -29,28 +29,21 @@ The project is organized into standard, recognizable layers. The "magic" of FSA 
 ```mermaid
 graph TD
     subgraph Presentation
-        direction LR
         API[Api Host]
         WebApp[WebApp Host]
     end
-
     subgraph Application
-        direction TD
         Features[Features Layer]
         Domain[Domain Layer]
     end
-    
     Infrastructure[Infrastructure Layer]
-    Core[".NET Forge Core Toolkit"]
+    Core[.NET Forge Core Toolkit]
 
-    Presentation -- "Sends Requests To" --> Features
-    Features -- "Uses" --> Domain
-    Features -- "Depends on Interfaces from" --> Domain
-    Infrastructure -- "Implements Interfaces from" --> Domain
-    Features -- "Built With" --> Core
-
-    style Features fill:#6A2C8C,stroke:#333,stroke-width:2px,color:white
-    style Presentation fill:#eee,stroke:#333,stroke-width:2px
+    API --> Features
+    WebApp --> Features
+    Features --> Domain
+    Infrastructure --> Domain
+    Features --> Core
 ```
 
 ### Layer Responsibilities
@@ -70,25 +63,25 @@ A typical request flows through the system in a clean, predictable, and decouple
 ```mermaid
 sequenceDiagram
     participant Host as Presentation Host (API)
-    participant Mediator as Mediator
-    participant UoW as UnitOfWork Behavior
-    participant Validation as Validation Behavior
-    participant Handler as Feature Handler
+    participant Mediator
+    participant UoW as UnitOfWork
+    participant Validation
+    participant Feature as Handler
     participant Repo as Repository
     participant DB as Database
 
-    Host->>+Mediator: Send(CreateProduct Command)
-    Mediator->>+UoW: Handle(Command, next)
-    UoW->>+Validation: Handle(Command, next)
-    Validation->>Handler: Handle(Command)
-    Handler->>Repo: AddAsync(product)
-    Repo->>DB: (In-memory change)
-    Handler-->>-Validation: return Success Result
-    Validation-->>-UoW: return Success Result
-    UoW->>Repo: SaveChangesAsync()
-    Repo->>DB: COMMIT TRANSACTION
-    UoW-->>-Mediator: return Success Result
-    Mediator-->>-Host: return Success Result
+    Host->>Mediator: Send(CreateProduct)
+    Mediator->>UoW: Handle(request)
+    UoW->>Validation: Validate(request)
+    Validation-->>UoW: Valid Result
+    UoW->>Feature: Execute(request)
+    Feature->>Repo: Add(product)
+    Repo->>DB: Persist (pending)
+    Feature-->>UoW: Result.Success(id)
+    UoW->>Repo: Commit()
+    Repo->>DB: TRANSACTION COMMIT
+    UoW-->>Mediator: Result.Success(id)
+    Mediator-->>Host: Map to HTTP 201
 ```
 
 ## 4. Framework Rules (Canonical)

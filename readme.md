@@ -14,40 +14,29 @@ This solution uses the **Fused Slice Architecture**, a pragmatic and highly cohe
 ```mermaid
 graph TD
     subgraph Presentation
-        direction LR
         API[Api Host]
         WebApp[WebApp Host]
     end
-
     subgraph Application
-        direction TD
         Features[Features Layer]
         Domain[Domain Layer]
     end
-    
     Infrastructure[Infrastructure Layer]
-    Core[".NET Forge Core Toolkit"]
+    Core[.NET Forge Core Toolkit]
 
-    Presentation -- "Sends Requests To" --> Features
-    Features -- "Uses" --> Domain
-    Features -- "Depends on Interfaces from" --> Domain
-    Infrastructure -- "Implements Interfaces from" --> Domain
-    Features -- "Built With" --> Core
-
-    style Features fill:#6A2C8C,stroke:#333,stroke-width:2px,color:white
-    style Presentation fill:#eee,stroke:#333,stroke-width:2px
+    API --> Features
+    WebApp --> Features
+    Features --> Domain
+    Infrastructure --> Domain
+    Features --> Core
 ```
 
-*   **`Domain` Layer:** Contains the core of your business logic. This includes your domain entities, value objects, smart enums, and the interfaces for your repositories (`IProductRepository`). This layer has no external dependencies.
-
-*   **`Features` Layer:** This is the application's core. It contains all the use cases and business processes.
-    *   **The "Flair": This layer implements the Fused Slice pattern.** Instead of organizing code by technical concern (e.g., `Commands/`, `Queries/`), we organize it by feature. All logic for a feature—its command, query, handler, DTOs, and validator—is **fused** into a single, self-contained `[FeatureName]Feature.cs` file. This maximizes cohesion and simplifies development.
-
-*   **`Infrastructure` Layer:** Implements `Domain` abstractions (EF Core `DbContext`, repositories, specification evaluators, external service clients, UnitOfWork with transaction + post-commit domain event dispatch trigger). Optional alternate providers (Dapper/Linq2Db) for read/query optimization.
-
-*   **`Presentation` Layer:** Entry points (Minimal API host, optional gRPC service, optional Aspire AppHost, UI). **Thin Adapters** that translate transport payloads into mediator requests and map `Result` to protocol responses (HTTP status, gRPC status). gRPC interceptors may provide tracing/validation/error translation. **No business logic here.**
-
-*   **`Core` Library (NetForge Core Toolkit):** In-house implementations: Mediator, Result, Validation, Specification, Mapping, Domain primitives, Pipeline (Validation, UnitOfWork, future Logging/Caching/Timing), domain event abstractions—distributed as source for full ownership.
+* **`Domain` Layer:** Contains the core of your business logic. This includes your domain entities, value objects, smart enums, and the interfaces for your repositories (`IProductRepository`). This layer has no external dependencies.
+* **`Features` Layer:** This is the application's core. It contains all the use cases and business processes.
+    * **The "Flair": This layer implements the Fused Slice pattern.** Instead of organizing code by technical concern (e.g., `Commands/`, `Queries/`), we organize it by feature. All logic for a feature—its command, query, handler, DTOs, and validator—is **fused** into a single, self-contained `[FeatureName]Feature.cs` file. This maximizes cohesion and simplifies development.
+* **`Infrastructure` Layer:** Implements `Domain` abstractions (EF Core `DbContext`, repositories, specification evaluators, external service clients, UnitOfWork with transaction + post-commit domain event dispatch trigger). Optional alternate providers (Dapper/Linq2Db) for read/query optimization.
+* **`Presentation` Layer:** Entry points (Minimal API host, optional gRPC service, optional Aspire AppHost, UI). **Thin Adapters** that translate transport payloads into mediator requests and map `Result` to protocol responses (HTTP status, gRPC status). gRPC interceptors may provide tracing/validation/error translation. **No business logic here.**
+* **`Core` Library (NetForge Core Toolkit):** In-house implementations: Mediator, Result, Validation, Specification, Mapping, Domain primitives, Pipeline (Validation, UnitOfWork, future Logging/Caching/Timing), domain event abstractions—distributed as source for full ownership.
 
 ### Key Principles (Summary)
 
