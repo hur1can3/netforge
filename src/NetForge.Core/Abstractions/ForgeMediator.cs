@@ -31,8 +31,7 @@ public sealed class ForgeMediator : IForgeMediator
         var handlerType = typeof(IForgeRequestHandler<,>).MakeGenericType(requestType, responseType);
         var handler = _sp.GetService(handlerType) ?? throw new InvalidOperationException($"Handler not registered for {requestType.Name}");
 
-    var method = handlerType.GetMethod("Handle") ?? throw new InvalidOperationException("Handle method not found");
-
+        var method = handlerType.GetMethod("Handle") ?? throw new InvalidOperationException("Handle method not found");
         var behaviorsServiceType = typeof(IEnumerable<>).MakeGenericType(typeof(IForgePipelineBehavior<,>).MakeGenericType(requestType, responseType));
         var behaviors = ((IEnumerable<object>?)_sp.GetService(behaviorsServiceType)) ?? Array.Empty<object>();
         var ordered = behaviors.Reverse().ToList();
