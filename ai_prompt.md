@@ -1,88 +1,116 @@
-# AI Build Prompt – MealPlanner (FSA)
-Version: 0.2 (Living Document)
+# AI Build Prompt – FoodForge (FSA)
 
-Hello. Your task is to act as a senior .NET developer and architect, specializing in the **Fused Slice Architecture (FSA)** and the **NetForge Core Toolkit** (an evolution of the .NET Forge concepts). You will build a new web application from scratch, strictly adhering to the updated principles and patterns of this architecture.
+Version: 0.3 (Living Document)
+
+Hello. You are an expert .NET 9 developer and architect specializing in **Fused Slice Architecture (FSA)** and the **NetForge Core Toolkit**. You will build the sample application described in `application_spec_foodstuffs.md` (FoodForge specification) strictly following FSA rules (FSA-01..25) plus new optional advanced practices (Outbox, Telemetry, Concurrency, Idempotency, Paging, Caching). Implementation must remain source-owned unless a justified gap is documented.
 
 **Primary Goal:**
-Build a "MealPlanner" application, a simplified clone of the "FoodStuffs" project. This application will allow users to manage grocery items and plan meals.
+Implement the FoodForge domain: Recipes, Ingredients, Meal Plans, Shopping Lists, Tags, Ratings, Pantry, Search, and Image Processing (stubbed) with explicit Results and post-commit domain events.
 
-## Core Concepts & Constraints (You MUST follow these)
+## Core Concepts & Constraints (STRICT)
 
-Refer to rule catalog in `fused_slice_architecture.md` for IDs.
+See `fused_slice_architecture.md` rule catalog.
 
-1. **Architecture (FSA-01, FSA-15):** Use the Fused Slice Architecture. Standard projects: `Core`, `Domain`, `Features`, `Infrastructure`, `Presentation` (API / optional gRPC / optional Aspire host), optional `Clients`.
-2. **Toolkit (FSA-14):** Use in-house NetForge Core patterns (Mediator, Result, Validation, Specification, ValueObject, UnitOfWork, Mapping) unless a gap is proven.
-3. **Feature Fusion (FSA-01):** All logic for a feature (commands, queries, handlers, DTOs, validators, internal mappers) resides in a single `[FeatureName]Feature.cs` file.
-4. **Thin Hosts (FSA-02):** Presentation projects are transport adapters (Minimal APIs, gRPC). They just translate inputs to mediator requests and map `Result` out.
-5. **Error Handling (FSA-04):** Handlers always return `Result` / `Result<T>`; no exceptions for control flow. Failure categories map to HTTP/gRPC status codes.
-6. **Persistence Flexibility (FSA-03, FSA-06, FSA-12):** Use repository + unit of work abstractions. EF Core default; allow mixing (EF Core + Dapper/Linq2Db). No direct `DbContext` usage in handlers.
-7. **Domain Events (FSA-07):** Domain events dispatched only after successful commit by `UnitOfWorkBehavior`.
-8. **Specifications (FSA-08):** Queries use composable specifications passed to repositories.
-9. **Clients (FSA-13):** Outgoing service calls via Refit, Kiota, or manual HttpClient wrappers with centralized resilience.
-10. **Composition Over Inheritance (FSA-09):** Use extension methods & small interfaces; base classes only for core primitives (ValueObject, Entity).
+1. **Fused Feature Files (FSA-01):** Each feature = single `[FeatureName]Feature.cs` containing requests, validators, handlers, internal mappers, DTOs.
+2. **Thin Adaptation (FSA-02, FSA-15):** Hosts map transport ⇄ mediator; no domain/persistence logic.
+3. **Explicit Results (FSA-04):** Return `Result` / `Result<T>`; no exceptions for expected flows; map errors via taxonomy in spec.
+4. **Abstractions & UoW (FSA-03,06,12):** Handlers depend only on repository + UoW abstractions; no `SaveChanges`/transactions inline.
+5. **Post-Commit Events (FSA-07):** Domain events raised by entities, published after commit; Outbox for external integration (FSA-18).
+6. **Specifications (FSA-08):** All queries & paging via specs; no inline provider queries.
+7. **Composition First (FSA-09):** Prefer small interfaces / extensions over inheritance.
+8. **Pipeline Behaviors (FSA-10,11):** Validation, UnitOfWork (commit + event dispatch), optional Caching/Logging/Timing.
+9. **Structured Telemetry (FSA-16):** Every handler logs structured template with feature_name, success, duration_ms. Activities around external calls.
+10. **Idempotency (FSA-17):** External side-effect commands require idempotency key (e.g., image uploads).
+11. **Outbox (FSA-18):** Integration events & search index updates go through Outbox + dispatcher service.
+12. **Caching (FSA-19):** Apply via decorators for read-heavy specs (search facets) not inline.
+13. **Paging & Bounds (FSA-20):** All collection endpoints require page + size (max 100).
+14. **Optimistic Concurrency (FSA-21):** Update commands check concurrency token -> Conflict error.
+15. **Secure Config (FSA-22):** Secrets bound once; features get abstractions only.
+16. **Versioning (FSA-23):** Additive contract growth. Introduce `/v1` first.
+17. **Flags (FSA-24):** Feature flags evaluated in host/behavior, boolean passed into request DTO.
+18. **Testing Pyramid (FSA-25):** Domain + feature slice + minimal E2E; keep E2E lean.
+19. **Additional Entities:** Conform to `application_spec_foodstuffs.md` domain aggregates and value objects.
 
-## Application to Build: "MealPlanner"
+## Application Scope Summary
 
-### Domain Model
+Implement the following aggregates & supporting concepts (see spec for invariants):
 
-* `GroceryItem`:
-    * `Id` (Guid)
-    * `Name` (string)
-    * `Category` (string) - e.g., "Dairy", "Produce", "Meat"
-    * `Quantity` (int)
-    * `IsAcquired` (bool)
-* `Meal`:
-    * `Id` (Guid)
-    * `Name` (string)
-    * `Ingredients` (a collection of `GroceryItem` entities)
+- Recipe, Ingredient, MealPlan, ShoppingList, Pantry, RecipeImage, Tag, Rating, RecentHistory.
+- Value objects: IngredientQuantity, UnitConversion, TimeRange, ServingYield, RecipeTitle, TagName, MealSlot, ConcurrencyToken, IdempotencyKey.
+- Domain events: RecipeCreated, RecipeUpdated, RecipeDeleted, MealPlanCreated, IngredientCreated, ShoppingListGenerated, RatingGiven, RecipeViewed.
+- Specifications: ActiveRecipesSpec, RecipesByTagSpec, RecipesSearchSpec, RecentRecipesSpec, MealPlanByDateRangeSpec, ShoppingListForPlanSpec, IngredientsByNamePrefixSpec, PantryItemsForUserSpec.
+- Feature catalog (commands/queries) per spec section 8.
+
+All invariants, validation, events, and error taxonomy must match `application_spec_foodstuffs.md`.
 
 ## Step-by-Step Implementation Plan
 
 Please proceed step-by-step. I will review each step.
 
-### Step 1: Project & Core Setup
-1.  Create solution structure: `NetForge.Core`, `MealPlanner.Domain`, `MealPlanner.Features`, `MealPlanner.Infrastructure`, `MealPlanner.Presentation.Api`, optional `MealPlanner.Presentation.Grpc`, optional `MealPlanner.AppHost` (Aspire), `MealPlanner.Clients`.
-2.  Implement NetForge Core primitives: `Result`, `Error`, `Mediator`, `Pipeline` (Validation, UnitOfWork), `ForgeValidator`, `Specification` combinators, `Entity`, `ValueObject`, `SmartEnum`, `ForgeMapper`, `IUnitOfWork`, `IRepository<T>`, domain event interfaces.
-3.  Add DI extension `AddNetForgeCore()` scanning assemblies.
+### Step 1: Solution & Core Toolkit
 
-### Step 2: Implement the Domain Layer
-1.  Define entities: `GroceryItem`, `Meal` (+ domain events if needed).
-2.  Define repositories: `IGroceryItemRepository`, `IMealRepository` (CRUD + spec query methods: `Task<IReadOnlyList<T>> ListAsync(ISpecification<T> spec)` etc.).
-3.  Define `IUnitOfWork` abstraction (CommitAsync, BeginScope if needed).
-4.  Create shared specifications (e.g., `GroceryItemsByCategorySpec`).
+1. Create solution + projects: `NetForge.Core`, `FoodForge.Domain`, `FoodForge.Features`, `FoodForge.Infrastructure`, `FoodForge.Presentation.Api`, optional `FoodForge.Presentation.Grpc`, optional `FoodForge.AppHost` (Aspire), `FoodForge.Background` (Outbox dispatcher), optional `FoodForge.Clients`.
+2. Implement/port NetForge Core primitives (if not already): Result, Error, Mediator, Pipeline behaviors (Validation, UnitOfWork, Logging stub, Timing stub), ForgeValidator, Specification combinators (And/Or/Not/Page/OrderBy), Entity, ValueObject, SmartEnum, DomainEvent base, ForgeMapper (minimal), IUnitOfWork, IRepository&lt;T&gt;, IReadableSpecificationEvaluator.
+3. DI: `services.AddNetForgeCore()` registers mediator + behaviors + mapping + validator discovery.
 
-### Step 3: Implement the `GroceryItemsFeature` Fused Slice
-1.  Create `GroceryItemsFeature.cs` (DTOs, commands, queries, validators, handlers fused).
-2.  Implement: Create, GetById, ListAll (with optional spec filters), Update (quantity, toggle acquired), Delete.
-3.  Use repository interfaces + `IUnitOfWork` (commit handled by behavior; no SaveChanges in handler).
-4.  Map entities to DTOs using `ForgeMapper` or manual mapping inside the feature file.
+### Step 2: Domain Layer
 
-### Step 4: Implement the Infrastructure Layer
-1.  Add EF Core DbContext + entity configurations.
-2.  Implement repositories (EF variant) + optional Dapper adapter example.
-3.  Implement UnitOfWork (EF transaction + optional TransactionScope strategy for multi-provider scenarios).
-4.  Implement Specification evaluator for EF translation.
-5.  Register infrastructure via `AddInfrastructureData()` (context, repos, UoW, evaluator).
+1. Define aggregates per spec (Recipe, Ingredient, MealPlan, ShoppingList, Pantry, Tag, Rating, RecentHistory, RecipeImage) with invariants enforced in constructors/mutators.
+2. Add domain events emission inside aggregates (e.g., `RecipeCreated`, `RecipeUpdated`).
+3. Define repository interfaces (generic + specific) supporting spec querying & paging.
+4. Define UoW abstraction (CommitAsync, maybe Enlist/Begin for advanced scenarios).
+5. Provide shared specifications set.
 
-### Step 5: Implement the `Api` Host (Presentation / Minimal APIs)
-1.  Add `Program.cs` configuring NetForge Core + Infrastructure.
-2.  Add endpoint mapping extension `MapGroceryItemEndpoints` (POST, GET all, GET by id, PUT, DELETE) using mediator.
-3.  Implement unified Result -> `IResult` mapping (success codes, error ProblemDetails).
-4.  Add versioned route group `/v1`.
+### Step 3: Feature Slices (Phased)
 
-### Step 6: Implement Testing
-1.  Unit tests: Result, validators, handlers (mock repos/UoW with substitutes).
-2.  Integration tests: Minimal API endpoints (Testcontainers for Postgres/SQL Server + Respawn reset).
-3.  Domain event dispatch test (ensure post-commit behavior).
-4.  Optional: performance micro-bench for mapping (later).
+Implement slices incrementally (each as one file):
 
-### Optional Extensions (Later Phases)
-* gRPC host + interceptors.
-* Aspire AppHost instrumentation.
-* Refit / Kiota client generation example project.
+1. `RecipesFeature` (CreateRecipe, UpdateRecipe, CopyRecipe, DeleteRecipe, SearchRecipes, GetRecipeDetail, AssignTagsToRecipe, RateRecipe, ListRecentRecipes)
+2. `IngredientsFeature` (CreateIngredient, SearchIngredients)
+3. `MealPlansFeature` (CreateMealPlan, UpdateMealPlan)
+4. `ShoppingListsFeature` (GenerateShoppingList, GetShoppingList)
+5. `PantryFeature` (AdjustPantryItem)
+6. `TagsFeature` (CreateTag, ListTags)
+7. `ImagesFeature` (AddRecipeImage – command; ProcessRecipeImage – background handler)
 
-Please begin with **Step 1**. I am ready to review your work.
+All slices: nested validators, specs, explicit Results, domain event raising only inside entities.
+
+### Step 4: Infrastructure Layer
+
+1. EF Core DbContext + configurations (row version token, soft delete flags, indexes for search fields, Tag uniqueness).
+2. Repositories (EF) + optional read-model Dapper repo for search.
+3. Outbox table + repository + background dispatcher (FSA-18).
+4. UnitOfWork implementation (transaction + post-commit domain event dispatch + enqueue outbox).
+5. Specification evaluator translating expression tree.
+6. Caching decorators (optional) for heavy read specs (RecipesSearchSpec facets) (FSA-19).
+7. Idempotent image upload store (hash check) (FSA-17).
+
+### Step 5: API Host (Minimal APIs)
+
+1. Add `Program.cs` with: correlation ID middleware, structured logging, `AddNetForgeCore()`, `AddInfrastructureData()`, health checks.
+2. Map versioned routes `/v1/...` grouping per aggregate (Recipes, Ingredients, MealPlans, ShoppingLists, Tags, Pantry, Ratings, Images).
+3. Implement unified Result -> `IResult` mapping (error taxonomy to status codes; pagination metadata via headers).
+4. Ensure all collection endpoints require `page` & `pageSize` query params (bounded) (FSA-20).
+
+### Step 6: Testing Strategy
+
+1. Domain unit tests (invariants, value objects, events raised).
+2. Feature slice tests (mediator through pipeline with in-memory repos).
+3. API contract tests (minimal subset) verifying status codes + headers + paging.
+4. Outbox dispatcher test (stored event -> published stub call).
+5. Concurrency conflict test (two updates -> second conflict Result).
+6. Pagination boundary tests (pageSize max enforcement).
+
+### Step 7: Background & Optional Extensions
+
+1. Background service for Outbox.
+2. Image processing stub (logs transformation request) – idempotent.
+3. Optional gRPC surface for selected read endpoints.
+4. Aspire AppHost for local orchestration (observability wiring).
+5. Optional typed client project demonstrating consumption of the API (FSA-13).
+
+Deliver incrementally: complete Step 1, then Step 2, etc. After each step, output a concise diff summary and any rule IDs satisfied.
 
 ---
 
-Cross-Document Navigation: [Architecture Rules](./fused_slice_architecture.md) | [Toolkit](./netforge_core.md) | [Design Doc](./netforge_core_design.md) | [Readme](./readme.md)
+Cross-Document Navigation: [Architecture Rules](./fused_slice_architecture.md) | [Toolkit](./netforge_core.md) | [Design Doc](./netforge_core_design.md) | [App Spec](./application_spec_foodstuffs.md) | [Readme](./readme.md)
