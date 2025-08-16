@@ -31,6 +31,18 @@ graph TD
     Features --> Core
 ```
 
+#### ASCII Fallback
+
+```text
+Presentation Layer:          Application Layer:              Infrastructure        Core Toolkit
++-----------+  +---------+   +-------------+  +-----------+   +----------------+   +-----------------------+
+|   API     |  | WebApp  |-->|  Features   |->|  Domain    |<--| Infrastructure |-->| Mediator / Result /   |
++-----+-----+  +----+----+   | (Fused)     |  | (Entities, |   | (Repos, Specs, |   | Spec / Validation     |
+    |            |         +-------------+  |  VOs, Evts)|   |  Outbox etc.) |   | Behaviors / Primitives|
+    |            |                               ^         +----------------+   +-----------------------+
+    +------------+-------------------------------+ (Domain abstractions)
+```
+
 * **`Domain` Layer:** Contains the core of your business logic. This includes your domain entities, value objects, smart enums, and the interfaces for your repositories (`IProductRepository`). This layer has no external dependencies.
 * **`Features` Layer:** This is the application's core. It contains all the use cases and business processes.
     * **The "Flair": This layer implements the Fused Slice pattern.** Instead of organizing code by technical concern (e.g., `Commands/`, `Queries/`), we organize it by feature. All logic for a feature—its command, query, handler, DTOs, and validator—is **fused** into a single, self-contained `[FeatureName]Feature.cs` file. This maximizes cohesion and simplifies development.

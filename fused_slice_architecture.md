@@ -46,6 +46,40 @@ graph TD
     Features --> Core
 ```
 
+#### ASCII Fallback: Architectural Layers
+
+```text
+                        +-----------------------------+
+                        |        Presentation         |
+                        |  +---------+  +-----------+ |
+Incoming HTTP/gRPC ---> |  |  API    |  |  WebApp   | | ---> (Thin adapters map to mediator)
+                        +-----+-----------+-----------+
+                              |           |
+                              v           v
+                          ( Mediator / Pipeline )
+                                   |
+                                   v
+        +---------------------------------------------------------+
+        |                     Application                         |
+        |  +------------------+      +--------------------------+ |
+        |  |   Features       | ---> |         Domain           | |
+        |  |  (Fused Slices)  |      | (Entities, VOs, Events)  | |
+        |  +------------------+      +--------------------------+ |
+        +------------------------------^--------------------------+
+                                       |
+                                       | (Implements abstractions / specs)
+            +--------------------------+---------------------------+
+            |                      Infrastructure                 |
+            | (EF Core, Repos, Specs Eval, Outbox, Integrations)  |
+            +--------------------------+---------------------------+
+                                       |
+                                       v
+                          +------------------------------+
+                          |     NetForge Core Toolkit    |
+                          | (Mediator, Result, Spec, etc)|
+                          +------------------------------+
+```
+
 ### Layer Responsibilities
 
 * **`Domain` Layer:** Contains the core of your business logic. This includes domain entities, value objects, smart enums, and repository interfaces. This layer has zero external dependencies.
@@ -82,6 +116,44 @@ sequenceDiagram
     Repo->>DB: TRANSACTION COMMIT
     UoW-->>Mediator: Result.Success(id)
     Mediator-->>Host: Map to HTTP 201
+```
+
+#### ASCII Fallback: Command Request Flow
+
+```text
+Client
+    |
+    v
+Host (API) --Send(CreateProduct)--> Mediator
+    |                                   |
+    |                                   v
+    |                             UnitOfWork
+    |                                   |
+    |                        +----------+-------------+
+    |                        | Validation Behavior    |
+    |                        +----------+-------------+
+    |                                   |
+    |                        (Valid? If not -> Failure -> Host)
+    |                                   |
+    |                                   v
+    |                               Handler
+    |                                   |
+    |                          Add(Product) via Repo
+    |                                   |
+    |                                   v
+    |                               Repository
+    |                                   |
+    |                               (Persist - pending commit)
+    |                                   |
+    |<---------- Result.Success(id) -----+
+    |                                   |
+    |                        UnitOfWork Commit Transaction
+    |                                   |
+    |                        Post-Commit Domain Event Dispatch
+    |                                   |
+    |<--------- Result.Success(id) ------+
+    v
+Map to HTTP 201 Created / gRPC OK
 ```
 
 ## 4. Framework Rules (Canonical)
