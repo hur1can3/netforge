@@ -15,6 +15,6 @@ public abstract class ForgeValidator<T>
     {
         _errors.Clear();
         OnValidate(instance);
-    return _errors.Count == 0 ? ForgeResult.Success() : ForgeResult.Failure(_errors);
+    return _errors.Count == 0 ? ForgeResults.Success() : ForgeResults.Failure(_errors);
     }
 }

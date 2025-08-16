@@ -1,6 +1,6 @@
 namespace NetForge.Core.Utilities;
 
-public static class Guard
+public static class ForgeGuard
 {
     public static void AgainstNull(object? value, string paramName)
     {

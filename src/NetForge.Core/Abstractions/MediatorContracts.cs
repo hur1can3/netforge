@@ -1,22 +1,21 @@
 namespace NetForge.Core.Abstractions;
 
-public abstract record ForgeRequest<TResponse>;
-
-public abstract class ForgeRequestHandler<TRequest, TResponse> where TRequest : ForgeRequest<TResponse>
+public interface IForgeRequest<TResponse> { }
+public interface IForgeRequestHandler<TRequest, TResponse> where TRequest : IForgeRequest<TResponse>
 {
-    public abstract Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken);
+    Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken);
 }
 
 public interface IForgeMediator
 {
-    Task<TResponse> Send<TResponse>(ForgeRequest<TResponse> request, CancellationToken ct = default);
+    Task<TResponse> Send<TResponse>(IForgeRequest<TResponse> request, CancellationToken ct = default);
 }
 
-public delegate Task<TResponse> ForgeRequestHandlerExecution<TResponse>(); // Intentionally ends with Execution to satisfy CA1711
+public delegate Task<TResponse> ForgeRequestHandlerDelegate<TResponse>();
 
-public abstract class ForgePipelineBehavior<TRequest, TResponse> where TRequest : ForgeRequest<TResponse>
+public interface IForgePipelineBehavior<TRequest, TResponse> where TRequest : IForgeRequest<TResponse>
 {
-    public abstract Task<TResponse> Handle(TRequest request, ForgeRequestHandlerExecution<TResponse> nextHandler, CancellationToken ct);
+    Task<TResponse> Handle(TRequest request, ForgeRequestHandlerDelegate<TResponse> next, CancellationToken ct);
 }
 
 public sealed class ForgeMediator : IForgeMediator
@@ -24,16 +23,17 @@ public sealed class ForgeMediator : IForgeMediator
     private readonly IServiceProvider _sp;
     public ForgeMediator(IServiceProvider sp) => _sp = sp;
 
-    public Task<TResponse> Send<TResponse>(ForgeRequest<TResponse> request, CancellationToken ct = default)
+    public Task<TResponse> Send<TResponse>(IForgeRequest<TResponse> request, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(request);
         var requestType = request.GetType();
         var responseType = typeof(TResponse);
-        var handlerType = typeof(ForgeRequestHandler<,>).MakeGenericType(requestType, responseType);
+        var handlerType = typeof(IForgeRequestHandler<,>).MakeGenericType(requestType, responseType);
         var handler = _sp.GetService(handlerType) ?? throw new InvalidOperationException($"Handler not registered for {requestType.Name}");
 
-        var method = handlerType.GetMethod("Handle") ?? throw new InvalidOperationException("Handle method not found");
-    var behaviorsServiceType = typeof(IEnumerable<>).MakeGenericType(typeof(ForgePipelineBehavior<,>).MakeGenericType(requestType, responseType));
+    var method = handlerType.GetMethod("Handle") ?? throw new InvalidOperationException("Handle method not found");
+
+        var behaviorsServiceType = typeof(IEnumerable<>).MakeGenericType(typeof(IForgePipelineBehavior<,>).MakeGenericType(requestType, responseType));
         var behaviors = ((IEnumerable<object>?)_sp.GetService(behaviorsServiceType)) ?? Array.Empty<object>();
         var ordered = behaviors.Reverse().ToList();
 
@@ -45,7 +45,7 @@ public sealed class ForgeMediator : IForgeMediator
                 : throw new InvalidOperationException("Handler returned unexpected result type");
         }
 
-        ForgeRequestHandlerExecution<TResponse> next = () => CoreInvoke();
+        ForgeRequestHandlerDelegate<TResponse> next = () => CoreInvoke();
         foreach (var behaviorObj in ordered)
         {
             var handleMethod = behaviorObj.GetType().GetMethod("Handle") ?? throw new InvalidOperationException("Behavior Handle missing");
